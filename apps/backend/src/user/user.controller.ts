@@ -48,4 +48,10 @@ export class UserController {
     const user = { email, token, username, bio, image };
     return { user };
   }
+
+  // ✅ NEW ENDPOINT: GET /users/roster
+  @Get('users/roster')
+  async getRoster() {
+    return this.userService.getUserRoster();
+  }
 }
