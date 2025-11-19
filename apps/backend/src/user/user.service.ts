@@ -114,4 +114,26 @@ export class UserService {
 
     return { user: userRO };
   }
+
+  // ✅ NEW METHOD: Get roster with stats
+  async getUserRoster() {
+    const qb = this.em.getRepository(User).createQueryBuilder('user')
+      .leftJoin('user.articles', 'article')
+      .select('user.id', 'id')
+      .addSelect('user.username', 'username')
+      .addSelect('COUNT(article.id)', 'totalArticlesAuthored')
+      .addSelect('COALESCE(SUM(article.favoritesCount), 0)', 'totalFavoritesReceived')
+      .addSelect('MIN(article.createdAt)', 'dateOfFirstArticle')
+      .groupBy('user.id');
+
+    const result = await qb.getRawMany();
+
+    return result.map(row => ({
+      id: row.id,
+      username: row.username,
+      totalArticlesAuthored: Number(row.totalArticlesAuthored) || 0,
+      totalFavoritesReceived: Number(row.totalFavoritesReceived) || 0,
+      dateOfFirstArticle: row.dateOfFirstArticle || null,
+    }));
+  }
 }
